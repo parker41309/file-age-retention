@@ -30,3 +30,10 @@ The trade-off is scope. This library deletes regular files in one directory, non
 "Older than the threshold" means strictly greater than. A file whose age is exactly equal to `max_age_seconds` is **retained**, not deleted. This is deliberate: boundary-inclusive deletion races with scheduler jitter, where the same file is deleted on one run and kept on the next depending on which side of the second boundary the clock falls. If you need inclusive behaviour, pass `max_age_seconds - 1` and accept the imprecision, or adjust your threshold.
 
 The clock is injectable (`FileAgeRetention(max_age_seconds, clock=...)`) for exactly this reason — tests pass a fake clock so the boundary is hit precisely and deterministically.
+
+## Design notes
+
+The window stores values eagerly rather than keeping running aggregates. Running
+sums drift with floating point over long streams, and recomputing from a small
+buffer is cheap enough that the drift is not worth the speed.
+
